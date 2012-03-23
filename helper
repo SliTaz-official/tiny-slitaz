@@ -1,0 +1,358 @@
+#!/bin/sh
+# $0 kernel size [initrd]
+
+list_pkgs()
+{
+	TMPDIR=$2
+	shift 2
+	cat <<EOT
+<table>
+<tr>
+<th></th>
+<th>Package</th>
+<th>Version</th>
+<th>Description</th>
+<th>Disk</th>
+<th>Memory</th>
+<th></th>
+</tr>
+EOT
+	for i in $TMPDIR/pkgs/*/receipt pkgs/*/receipt ; do
+		[ -s $i ] || continue
+		case "$i" in
+		pkgs/kernel-*/receipt) continue;;
+		pkgs/module-*/receipt) continue;;
+		esac
+		AUTO_SELECTION=""
+		UNPACKED_SIZE="-"
+		PACKED_SIZE="-"
+		checked=""
+		. $i
+		case " $@ " in
+		*\ $PACKAGE\ *)	checked='checked="checked"';;
+		*) [ -n "$2" ] && checked="";;
+		esac
+		grep -qs "^$PACKAGE " $TMPDIR/uploadconf &&
+			checked='checked="checked"'
+		if [ -n "$AUTO_SELECTION" ]; then
+			checked='checked="checked" disabled'
+			cat <<EOT
+<input type="hidden" name="selected[]" value="$PACKAGE" />
+EOT
+		fi
+		cat <<EOT
+<tr>
+<td><input type="checkbox" name="selected[]" value="$PACKAGE" $checked /></td>
+<td><a href="?dl=$PACKAGE-$VERSION&amp;tmp=$TMPDIR">$PACKAGE</a></td>
+<td>$VERSION</td>
+<td>$SHORT_DESC</td>
+<td>$PACKED_SIZE</td>
+<td>$UNPACKED_SIZE</td>
+<td>$(grep -qs ^config_form $i && echo '&raquo;')</td>
+</tr>
+EOT
+	done
+	cat <<EOT
+</table>
+<p>
+</p>
+EOT
+	exit
+}
+
+list_kernels()
+{
+	TMPDIR=$2
+	shift 2
+	cat <<EOT
+<table>
+<tr>
+<th></th>
+<th>Kernel</th>
+<th>Version</th>
+<th>Description</th>
+<!-- th>Size</th -->
+</tr>
+EOT
+	checked='checked="checked"'
+	for i in $TMPDIR/pkgs/*/receipt pkgs/*/receipt ; do
+		[ -s $i ] || continue
+		case "$i" in
+		pkgs/kernel-*/receipt);;
+		*) continue;;
+		esac
+		UNPACKED_SIZE="-"
+		. $i
+		case " $@ " in
+		*\ $PACKAGE\ *)	checked='checked="checked"' ;;
+		*) [ -n "$2" ] && checked="";;
+		esac
+		cat <<EOT
+<tr>
+<td><input type="radio" name="kernel" value="$PACKAGE" $checked/></td>
+<td>${PACKAGE#kernel-}</td>
+<td>$VERSION</td>
+<td>$SHORT_DESC</td>
+<!-- td>$UNPACKED_SIZE</td -->
+</tr>
+EOT
+		checked=""
+	done
+	cat <<EOT
+</table>
+EOT
+	exit
+}
+
+list_modules()
+{
+	TMPDIR=$2
+	shift 2
+	cat <<EOT
+<table>
+<tr>
+<th></th>
+<th>Module</th>
+<th>Version</th>
+<th>Description</th>
+<th>Size</th>
+<th></th>
+</tr>
+EOT
+	for i in $TMPDIR/pkgs/*/receipt pkgs/*/receipt ; do
+		[ -s $i ] || continue
+		case "$i" in
+		pkgs/module-*/receipt);;
+		*) continue;;
+		esac
+		UNPACKED_SIZE="-"
+		. $i
+		checked=""
+		case " $@ " in
+		*\ $PACKAGE\ *)	checked='checked="checked"' ;;
+		esac
+		grep -qs "^$PACKAGE " $TMPDIR/uploadconf &&
+			checked='checked="checked"'
+		cat <<EOT
+<tr>
+<td><input type="checkbox" name="selected[]" value="$PACKAGE" $checked/></td>
+<td>${PACKAGE#module-}</td>
+<td>$VERSION</td>
+<td>$SHORT_DESC</td>
+<td>$UNPACKED_SIZE</td>
+<td>$(grep -qs ^config_form $i && echo '?')</td>
+</tr>
+EOT
+	done
+	cat <<EOT
+</table>
+EOT
+	exit
+}
+
+get_receipt()
+{
+	grep -l "PACKAGE=\"$1\"" $2/pkgs/*/receipt pkgs/*/receipt | head -1
+}
+
+get_package()
+{
+	local pkg
+	pkg=pkgs/$1/receipt
+	[ -s $pkg ] || pkg=$2/pkgs/$1/receipt
+	[ -s $pkg ] || pkg=$(get_receipt $@)
+	. $pkg
+	cd $(dirname $pkg)
+	pkg=$2$PACKAGE-$VERSION.tazpkg
+	find * | cpio -o -H newc > $pkg
+	echo -n $pkg
+}
+
+get_note()
+{
+	pkg=$(get_receipt $1 $2)
+	[ -n "$pkg" ] || exit
+	grep -qs ^config_note $pkg || exit
+	. $pkg
+	config_note
+}
+
+get_form()
+{
+	pkg=$(get_receipt $1 $2)
+	[ -n "$pkg" ] || exit
+	grep -qs ^config_form $pkg || exit
+	. $pkg
+	if [ -s $2/uploadconf ]; then
+		awk "{
+if (found) {
+	if (/^ /) print;
+	else exit;
+}
+if (/^$PACKAGE /) found=1
+}" < $2/uploadconf | sed -e 's/  //' -e 's/  \([A-Z_0-9]*=\)/export \1/' > $2/vars
+		. $2/vars
+	fi
+	config_form $2/fs
+	exit
+}
+
+do_pre_install()
+{
+	pkg=$(get_receipt $1 $2)
+	[ -n "$pkg" ] || exit
+	CONFIG_FILES=""
+	. $pkg
+	grep -qs ^pre_install $pkg && pre_install $2/fs
+	[ -n "$CONFIG_FILES" ] && for i in $CONFIG_FILES; do echo $i >> $2/config_files; done
+	unlzma -c $(dirname $pkg)/fs.cpio.lzma | ( cd $2 ; cpio -idmu )
+	exit 
+}
+
+do_post_install()
+{
+	pkg=$(get_receipt $1 $2)
+	[ -n "$pkg" ] || exit
+	. $pkg
+	echo "$1 $VERSION $(md5sum $(dirname $pkg)/fs.cpio.lzma | awk '{ print $1 }')" >> $2/fs/etc/packages.conf
+	if grep -qs ^post_install $pkg; then
+		. $2/vars
+		echo "=== $pkg: $(date) ===" >> $2/post_install.log 2>&1
+		post_install $2/fs >> $2/post_install.log 2>&1
+		sed -e 's/^export/ /' -e 's/^/  /' < $2/vars >> $2/fs/etc/packages.conf
+	fi
+	rm -f $2/vars
+	exit 
+}
+
+scan_depends()
+{
+	local pkg
+	for pkg in $@ ; do
+		case " $OUTPUT " in
+		*\ $pkg\ *) continue ;;
+		esac
+		DEPENDS=""
+		. $(get_receipt $pkg $TMPDIR)
+		scan_depends $DEPENDS
+		case " $OUTPUT " in
+		*\ $pkg\ *) continue ;;
+		esac
+		OUTPUT="$OUTPUT $pkg"
+	done
+}
+
+get_depends()
+{
+	TMPDIR=$2
+	shift 2
+	OUTPUT=""
+	scan_depends $@
+	echo -n $OUTPUT
+	exit
+}
+
+pkgs_extract()
+{
+	cd $2
+	mkdir pkgs
+	if cpio -t < $1 | grep -q receipt; then
+		mv $1 pkgs
+	elif tar tf $1 | grep -q tazpkg; then
+		tar xf $1 -C pkgs
+	elif tar tzf $1 | grep -q tazpkg; then
+		tar xzf $1 -C pkgs
+	elif tar tjf $1 | grep -q tazpkg; then
+		tar xjf $1 -C pkgs
+	else
+		rm -rf $1 pkgs
+		exit
+	fi
+	cd pkgs
+	for i in *; do
+		mkdir tmp
+		cd tmp
+		cpio -i < ../$i
+		. ./receipt
+		cd ..
+		mv tmp $PACKAGE-$VERSION
+	done
+	exit
+}
+
+lzma_set_size()
+{
+	n=$(unlzma -c $1 | wc -c)
+	for i in $(seq 1 8); do
+		printf '\\\\x%02X' $(($n & 255))
+		n=$(($n >> 8))
+	done | xargs echo -en | dd of=$1 conv=notrunc bs=1 seek=5 2> /dev/null
+}
+
+case "$1" in
+--list-modules) list_modules $@ ;;
+--list-kernels) list_kernels $@ ;;
+--list-pkgs) list_pkgs $@ ;;
+--get-form) get_form $2 $3 ;;
+--get-note) get_note $2 $3 ;;
+--pre-install) do_pre_install $2 $3 ;;
+--post-install) do_post_install $2 $3 ;;
+--depends) get_depends $@ ;;
+--pkgs-extract) pkgs_extract $2 $3 ;;
+--remove) rm -rf $2; exit ;;
+--get-pkg) get_package $2 $3 ;;
+esac
+
+if [ "x$1" == "x--mkrootfs" ]; then
+	tmp=$2
+	cd $tmp/fs
+	if [ ! -d boot -a -s ../kernel ]; then # custom kernel
+		mkdir boot
+		cp ../kernel boot/bzImage
+	fi
+	find -user bellard -exec chown root.root {} \;
+	find | grep -v ^./boot | cpio -o -H newc | lzma e ../rootfs.gz -si
+	lzma_set_size ../rootfs.gz
+fi
+if [ "x$1" == "x--mkiso" ]; then
+	tmp=$2
+	mkdir -p $tmp/iso/boot/isolinux $tmp/iso/data
+	cat $tmp/fs/boot/System.map | gzip -9 > $tmp/iso/data/sysmap.gz
+	cat $tmp/fs/boot/config | gzip -9 > $tmp/iso/data/linconf.gz
+	cat $tmp/fs/boot/config-busybox | gzip -9 > $tmp/iso/data/bbconf.gz
+	cp $tmp/config_files $tmp/iso/data/files.cnf
+	cp $tmp/fs/etc/packages.conf $tmp/iso/data/packages.cnf
+	cp $tmp/fs/boot/bzImage $tmp/iso/boot/bzImage
+	cp $tmp/rootfs.gz $tmp/iso/boot/rootfs
+	cp /boot/isolinux/isolinux.bin $tmp/iso/boot/isolinux
+	cat > $tmp/iso/boot/isolinux/isolinux.cfg <<EOT
+label slitaz
+	kernel /boot/bzImage
+	append initrd=/boot/rootfs rw root=/dev/null vga=normal
+default slitaz
+implicit 0	
+prompt 1	
+timeout 50
+EOT
+	genisoimage -o $tmp/slitaz.iso -b boot/isolinux/isolinux.bin \
+                -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 \
+                -V "Tiny SliTaz" -p "www.slitaz.org" -input-charset iso8859-1 \
+                -boot-info-table $tmp/iso > /dev/null 2>&1
+        [ -x /usr/bin/isohybrid ] &&
+        /usr/bin/isohybrid $tmp/slitaz.iso 2> /dev/null
+fi
+if [ "x$1" == "x--mkimg" ]; then
+	tmp=$2
+	exe=$PWD
+	cd $tmp
+	$exe/bootloader fs/boot/bzImage --initrd rootfs.gz --format 0
+	mv floppy. slitaz.img
+#	$exe/bootloader fs/boot/bzImage --initrd rootfs.gz
+#	cat floppy.* > slitaz.img && rm -f floppy.*
+fi
+if [ "x$1" == "x--mkcfg" ]; then
+	tmp=$2
+	cd $tmp/fs
+	for i in $(sed 's#^/##' < ../config_files); do find $i; done | \
+		sort | uniq | cpio -o -H newc | gzip -9 > ../config_files.cpio.gz
+fi
