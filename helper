@@ -3,9 +3,11 @@
 
 init()
 {
-	PKGS=$(dirname $(readlink pkgs/base-tiny*))
-	[ $PKGS/$(ls -tr $PKGS | tail -n 1) -nt pkgs/files.list.lzma ] &&
-	pkgs/mklists
+	[ "$(ls -t pkgs | sed q)" == "files.list.lzma" ] ||
+	for i in pkgs/*/receipt ; do
+		. $i
+		sed "s/^/$PACKAGE: /" $(dirname $i)/files.list
+	done | lzma e pkgs/files.list.lzma -si
 }
 
 list_pkgs()
