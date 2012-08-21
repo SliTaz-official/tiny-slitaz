@@ -1,0 +1,13 @@
+#!/bin/sh
+
+PKGS=/var/www/slitaz/mirror/packages/tiny
+
+cd $(dirname $0)
+for i in $(ls $PKGS/); do [ -e $i ] || ln -s $PKGS/$i; done
+
+for i in */receipt ; do
+	. $i
+	while read line; do
+		echo "$PACKAGE: $line"
+	done < $(dirname $i)/files.list
+done | lzma e files.list.lzma -si

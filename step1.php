@@ -51,6 +51,7 @@ if (isset($_POST['mykernel']) && !isset($_POST['packages'])) {
 }
 
 if (!isset($_POST['kernel'])) {
+	shell_exec("sudo ./helper --init"); 
 	if (isset($_POST['config'])) {
 		upload("uploadconf");
 	}

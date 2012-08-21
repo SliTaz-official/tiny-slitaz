@@ -1,6 +1,13 @@
 #!/bin/sh
 # $0 kernel size [initrd]
 
+init()
+{
+	PKGS=$(dirname $(readlink pkgs/base-tiny*))
+	[ $PKGS/$(ls -tr $PKGS | tail -n 1) -nt pkgs/files.list.lzma ] &&
+	pkgs/mklists
+}
+
 list_pkgs()
 {
 	TMPDIR=$2
@@ -301,6 +308,7 @@ case "$1" in
 --pkgs-extract) pkgs_extract $2 $3 ;;
 --remove) rm -rf $2; exit ;;
 --get-pkg) get_package $2 $3 ;;
+--init) init ;;
 esac
 
 if [ "x$1" == "x--mkrootfs" ]; then

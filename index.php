@@ -56,6 +56,7 @@ $static = "http://mirror.slitaz.org/static/";
 <h2>Build your configuration from binary packages</h2>
 
 <?php
+proc_nice(10);
 include "step1.php";
 include "step2.php";
 include "step3.php";
