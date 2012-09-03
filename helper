@@ -330,6 +330,7 @@ if [ "x$1" == "x--mkiso" ]; then
 	cat $tmp/fs/boot/System.map | gzip -9 > $tmp/iso/data/sysmap.gz
 	cat $tmp/fs/boot/config | gzip -9 > $tmp/iso/data/linconf.gz
 	cat $tmp/fs/boot/config-busybox | gzip -9 > $tmp/iso/data/bbconf.gz
+	cat $tmp/post_install.log | gzip -9 > $tmp/iso/data/log.gz
 	cp $tmp/config_files $tmp/iso/data/files.cnf
 	cp $tmp/fs/etc/packages.conf $tmp/iso/data/packages.cnf
 	cp $tmp/fs/boot/bzImage $tmp/iso/boot/bzImage
