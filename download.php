@@ -24,6 +24,8 @@ if (isset($_POST['download'])) {
 			download("config_files.cpio.gz");
 	case "Floppy" : shell_exec("./helper --mkimg ".$_POST['tmp_dir']); 
 			download("slitaz.img");
+	case "DOS/EX" : shell_exec("./helper --mkexe ".$_POST['tmp_dir']); 
+			download("slitaz.exe");
 	case "ISO im" : shell_exec("sudo ./helper --mkiso ".$_POST['tmp_dir']); 
 			download("slitaz.iso");
 	case "System" : download("fs/boot/System.map");

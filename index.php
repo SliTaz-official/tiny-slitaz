@@ -46,7 +46,7 @@ $static = "http://mirror.slitaz.org/static/";
 <!-- Content -->
 <div id="content">
 
-<?php if (isset($error) && $error != "") echo "
+<?php if (!empty($error)) echo "
 <div class=\"nav_box\">
 	<h4>Error :</h4>
 	<p>$error</p>
@@ -71,7 +71,7 @@ include "step5.php";
 	Useful software, expansible, easy to configure, runs fully in RAM, 
 	simple, light and fast for minimum hardware resources: ie fits on
 	one floppy disk (IDE disk optional), runs on a 386sx processor and
-	needs as little memory as possible (currently 8 MB with a 2.6.34 
+	needs as little memory as possible (currently 4 MB with a 2.6.14 
 	kernel).
 	<a href="http://doc.slitaz.org/en:guides:pxe#why-use-pxe-the-vnc-example">
 	Example</a>
@@ -98,11 +98,9 @@ include "step5.php";
 	The initramfs is based on <a href="http://uclibc.org/"
 	title="Instead of glibc">uClibc</a> and 
 	busybox with its <a href="dist/busybox.config.txt">config</a>
-	files and the packages 
-	<a href="http://pkgs.slitaz.org/search.cgi?filelist=slitaz-base-files">
-	slitaz-base-files</a> and 
-	<a href="http://pkgs.slitaz.org/search.cgi?filelist=slitaz-boot-scripts">
-	slitaz-boot-scripts</a>.
+	files and this
+	<a href="http://hg.slitaz.org/wok-tiny/file/tip/base-tiny/stuff">
+	filesystem tree</a>.
 </p>
 </div>
 
@@ -127,6 +125,27 @@ include "step5.php";
 		<a href="http://en.wikipedia.org/wiki/SliTaz">Wikipedia</a>
 		<a href="http://flattr.com/profile/slitaz">Flattr</a>
 	</p>
+<p>
+	<script type="text/javascript">
+	function QRCodePNG(str, obj) {
+		try {
+			obj.height = obj.width += 200;
+			return QRCode.generatePNG(str, {ecclevel: 'H'});
+		}
+		catch (any) {
+			var element = document.createElement("script");
+			element.src = "/static/qrcode.js";
+			element.type ="text/javascript"; 
+			element.onload = function() {
+				obj.src = QRCode.generatePNG(str, {ecclevel: 'H'});
+			};
+			document.body.appendChild(element);
+		}
+	}
+	</script>
+	<img src="/static/qr.png" alt="#" onmouseover="this.title = location.href"
+	 onclick="this.src = QRCodePNG(location.href, this)" />
+</p>
 </div>
 
 </body>

@@ -1,5 +1,6 @@
 <?php 
 
+shell_exec("sudo ./helper --chkdist"); 
 $usedvars = array( "kernel", "modules", "packages", "toconfigure",
 	"continue", "configuring", "tmp_dir" );
 
@@ -119,10 +120,7 @@ Custom kernel (bzImage file):
 
 <div>
 <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" name="kernels">
-<?php
-	echo shell_exec("./helper --list-kernels ".$_POST["tmp_dir"]);
-	post_hidden();
-?>
+<input type="hidden" name="kernel" value="linux" />
 <p>
 </p>
 

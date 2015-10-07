@@ -1,15 +1,13 @@
 <?php
 
-if (isset($_POST['kernel']) && $_POST['kernel'] == "kernel-modular" &&
-   !isset($_POST['modules'])) {
+if (isset($_POST['kernel']) && !isset($_POST['modules'])) {
 	if (isset($_POST['selected'])) {
 		$_POST['modules'] = implode(" ",$_POST['selected']);
 		unset($_POST['selected']);
 	}
 }
 
-if (isset($_POST['kernel']) && $_POST['kernel'] == "kernel-modular" &&
-   !isset($_POST['modules'])) {
+if (isset($_POST['kernel']) && !isset($_POST['modules'])) {
 
 ?>
 

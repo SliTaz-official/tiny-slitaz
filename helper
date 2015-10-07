@@ -43,12 +43,15 @@ EOT
 		esac
 		grep -qs "^$PACKAGE " $TMPDIR/uploadconf &&
 			checked='checked="checked"'
-		if [ -n "$AUTO_SELECTION" ]; then
+		case "$AUTO_SELECTION" in
+		never)
+			checked='disabled' ;;
+		always)
 			checked='checked="checked" disabled'
 			cat <<EOT
 <input type="hidden" name="selected[]" value="$PACKAGE" />
 EOT
-		fi
+		esac
 		cat <<EOT
 <tr>
 <td><input type="checkbox" name="selected[]" value="$PACKAGE" $checked /></td>
@@ -225,7 +228,7 @@ do_post_install()
 	. $pkg
 	echo "$1 $VERSION $(md5sum $(dirname $pkg)/fs.cpio.lzma | awk '{ print $1 }')" >> $2/fs/etc/packages.conf
 	if grep -qs ^post_install $pkg; then
-		. $2/vars
+		[ -s $2/vars ] && . $2/vars
 		echo "=== $pkg: $(date) ===" >> $2/post_install.log 2>&1
 		post_install $2/fs >> $2/post_install.log 2>&1
 		sed -e 's/^export/ /' -e 's/^/  /' < $2/vars >> $2/fs/etc/packages.conf
@@ -321,8 +324,9 @@ if [ "x$1" == "x--mkrootfs" ]; then
 		cp ../kernel boot/bzImage
 	fi
 	find -user bellard -exec chown root.root {} \;
-	find | grep -v ^./boot | cpio -o -H newc | lzma e ../rootfs.gz -si
-	lzma_set_size ../rootfs.gz
+	find | grep -v ^./boot | cpio -o -H newc | gzip -9 > ../rootfs.gz
+	which advdef 2> /dev/null && advdef -z4 ../rootfs.gz
+  find .. -exec ls -ld {} \; > /tmp/X
 fi
 if [ "x$1" == "x--mkiso" ]; then
 	tmp=$2
@@ -330,6 +334,7 @@ if [ "x$1" == "x--mkiso" ]; then
 	cat $tmp/fs/boot/System.map | gzip -9 > $tmp/iso/data/sysmap.gz
 	cat $tmp/fs/boot/config | gzip -9 > $tmp/iso/data/linconf.gz
 	cat $tmp/fs/boot/config-busybox | gzip -9 > $tmp/iso/data/bbconf.gz
+	cp $tmp/fs/boot/bundle $tmp/iso/data/bundle.sh
 	cat $tmp/post_install.log | gzip -9 > $tmp/iso/data/log.gz
 	cp $tmp/config_files $tmp/iso/data/files.cnf
 	cp $tmp/fs/etc/packages.conf $tmp/iso/data/packages.cnf
@@ -352,18 +357,30 @@ EOT
         [ -x /usr/bin/isohybrid ] &&
         /usr/bin/isohybrid $tmp/slitaz.iso 2> /dev/null
 fi
+if [ "x$1" == "x--mkexe" ]; then
+	tmp=$2
+	cd $tmp
+	cp fs/boot/bzImage slitaz.exe
+	sh fs/boot/bundle slitaz.exe rootfs.gz exe
+fi
 if [ "x$1" == "x--mkimg" ]; then
 	tmp=$2
-	exe=$PWD
 	cd $tmp
-	$exe/bootloader fs/boot/bzImage --initrd rootfs.gz --format 0
-	mv floppy. slitaz.img
-#	$exe/bootloader fs/boot/bzImage --initrd rootfs.gz
-#	cat floppy.* > slitaz.img && rm -f floppy.*
+	cp fs/boot/bzImage slitaz.img
+	sh fs/boot/bundle slitaz.img rootfs.gz floppy
+	dd of=slitaz.img bs=18k seek=80 count=0 conv=notrunc 2> /dev/null
 fi
 if [ "x$1" == "x--mkcfg" ]; then
 	tmp=$2
 	cd $tmp/fs
 	for i in $(sed 's#^/##' < ../config_files); do find $i; done | \
 		sort | uniq | cpio -o -H newc | gzip -9 > ../config_files.cpio.gz
+fi
+if [ "x$1" == "x--chkdist" ]; then
+	if [ pkgs/busybox-*/fs.cpio.lzma -nt dist/rootfs.cpio ]; then
+		cat pkgs/busybox-*/fs.cpio.lzma | unlzma | ( cd dist ; cpio -idmu )
+		mv -f dist/fs/* dist/
+		rmdir dist/fs
+		touch dist/*
+	fi
 fi

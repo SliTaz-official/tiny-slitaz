@@ -17,7 +17,7 @@ if (isset($_POST['configuring'])) {
 }
 
 $output = '';
-if (isset($_POST['toconfigure']) && $_POST['toconfigure'] != "") {
+if (!empty($_POST['toconfigure'])) {
 	$pkgs = explode(" ",$_POST['toconfigure']);
 	foreach ($pkgs as $key => $pkg) {
 		shell_exec("sudo ./helper --pre-install $pkg ".$_POST['tmp_dir']); 

@@ -22,6 +22,8 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 <p>
 <div align="center">
 <input name="download" value="Floppy image" type="submit" />
+&nbsp;
+<input name="download" value="DOS/EXE" type="submit" />
 <?php if (file_exists("/boot/isolinux/isolinux.bin")) { ?>
 &nbsp;
 <input name="download" value="ISO image" type="submit" />
@@ -82,17 +84,16 @@ The kernel can be <a href="http://elinux.org/Linux_Tiny">tuned/patched</a>
 or you can use an earlier version.
 </p>
 <p>
-You can test Tiny SliTaz without pre-historic hardware using qemu:
+You can test Tiny SliTaz without pre-historic hardware using qemu (need the ne module) :
 </p>
 <pre>
-qemu -cpu 486 -m 8 -net nic,model=ne2k_isa -net tap -fda slitaz.img
+qemu -cpu 486 -m 4 -net nic,model=ne2k_isa -net tap -fda slitaz.img
 </pre>
 <p>
 Or
 </p>
 <pre>
-qemu -cpu 486 -m 8 -net nic,model=ne2k_isa -net tap -snapshot \
-     -kernel kernel -initrd rootfs.gz /dev/zero
+qemu -cpu 486 -m 4 -net nic,model=ne2k_isa -net tap -kernel kernel -initrd rootfs.gz /dev/null
 </pre>
 <p>
 And the executable file /etc/qemu-ifup:
@@ -100,21 +101,8 @@ And the executable file /etc/qemu-ifup:
 <pre>
 #!/bin/sh
 
-if [ -x /usr/sbin/openvpn ]; then
-	openvpn --mktun --dev $1 --user `id -un`
-else
-	tunctl -u `id -un` -t $1                           
-fi                              
+tunctl -u $(id -un) -t $1                           
 ifconfig $1 192.168.0.1 broadcast 192.168.0.255 netmask 255.255.255.0
-</pre>
-<p>
-You can also update the file /etc/resolv.conf on the Tiny SliTaz guest with your
-nameserver(s) and enable the ip routing on your desktop:
-</p>
-<pre>
-# echo 1 > /proc/sys/net/ipv4/ip_forward
-# yes y | tazpkg get-install iptables
-# iptables -t nat -A POSTROUTING -j MASQUERADE
 </pre>
 
 <?php

@@ -1,7 +1,7 @@
 <?php
 
 if (isset($_POST['kernel']) && 
-   ($_POST['kernel'] != "kernel-modular" || isset($_POST['modules'])) &&
+   (isset($_POST['modules'])) &&
    !isset($_POST['packages'])) {
 	if (isset($_POST['selected'])) {
 		upload("mypackages");
@@ -9,13 +9,13 @@ if (isset($_POST['kernel']) &&
 		if ($_POST['selected'][$last] == "uploaded") {
 			unset($_POST['selected'][$last]);
 		}
-		$_POST['packages'] = implode(" ",$_POST['selected']);
+		$_POST['packages'] = $_POST['modules'].' '.implode(" ",$_POST['selected']);
 		unset($_POST['selected']);
 	}
 }
 
 if (isset($_POST['kernel']) && 
-   ($_POST['kernel'] != "kernel-modular" || isset($_POST['modules'])) &&
+   (isset($_POST['modules'])) &&
    !isset($_POST['packages'])) {
 
 	mkdir($_POST["tmp_dir"]."/fs");
