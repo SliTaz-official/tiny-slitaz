@@ -59,17 +59,18 @@ if (!isset($_POST['kernel'])) {
 	if (!file_exists($_POST["tmp_dir"]."uploadconf")) {
 ?>
 
-<p>
-The file <u>/etc/packages.conf</u> in the initramfs holds all information
-to rebuild your Tiny SliTaz system. You should upload your 
-<u>/etc/packages.conf</u> first if you want to upgrade your system only.
-</p>
+<div class="box">
+<h3>[Step 1/5] Packages and Kernel</h3>
+
+<p>The file <tt>/etc/packages.conf</tt> in the initramfs holds all information
+to rebuild your Tiny SliTaz system. You should upload your
+<tt>/etc/packages.conf</tt> first if you want to upgrade your system only.</p>
 
 <form method="post" enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
-Packages configuration:
-<input type="file" name="uploadconf" />
-<input name="config" value="Get config" type="submit" />
-<?php post_hidden(); ?>
+	Packages configuration:
+	<input type="file" name="uploadconf" />
+	<input name="config" value="Get config" type="submit" />
+	<?php post_hidden(); ?>
 </form>
 <?php
 	}
@@ -80,55 +81,53 @@ Packages configuration:
 	if (!file_exists($_POST["tmp_dir"]."uploadpkgs")) {
 ?>
 
-<p>
-You can upload a tazpkg file (.tazpkg) or a tarball of tazpkg files (.tar).
+<hr>
+
+<p>You can upload a tazpkg file (.tazpkg) or a tarball of tazpkg files (.tar).
 These packages will extend the official packages list and will be chosen when
 the package names are found to be matching. You can find some examples in the
-<a href="http://hg.slitaz.org/wok-tiny/file/">Tiny SliTaz repository</a>.
-</p>
+<a href="http://hg.slitaz.org/wok-tiny/file/">Tiny SliTaz repository</a>.</p>
+
 <div>
-<form method="post" enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
-Additional packages:
-<input type="file" name="uploadpkgs" />
-<input name="mypackages" value="Get packages" type="submit" />
-<?php post_hidden(); ?>
-</form>
+	<form method="post" enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
+		Additional packages:
+		<input type="file" name="uploadpkgs" />
+		<input name="mypackages" value="Get packages" type="submit" />
+		<?php post_hidden(); ?>
+	</form>
 </div>
-<p>
+
+<hr>
 <?php
 	}
 ?>
-</p>
 
-<a name="kernel"></a>
-<h2>Linux kernel</h2>
-
-<p>
-You can upload a custom kernel or use an official one.
-Your kernel should have an embedded initramfs with busybox like 
-<a href="dist/rootfs.cpio" title="See CONFIG_INITRAMFS_SOURCE">this one</a>.
-</p>
+<p id="kernel">You can upload a custom Kernel or use an official one. Your
+Kernel should have an embedded initramfs with busybox like <a
+href="dist/rootfs.cpio" title="See CONFIG_INITRAMFS_SOURCE">this one</a>.</p>
 
 <div>
-<form method="post" enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
-Custom kernel (bzImage file):
-<input type="file" name="uploadkernel" />
-<input name="mykernel" value="Get kernel" type="submit" />
-<?php post_hidden(); ?>
-</form>
+	<form method="post" enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
+		Custom kernel (bzImage file):
+		<input type="file" name="uploadkernel" />
+		<input name="mykernel" value="Get kernel" type="submit" />
+		<?php post_hidden(); ?>
+	</form>
 </div>
+
+<hr>
 
 <div>
-<form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" name="kernels">
-<input type="hidden" name="kernel" value="linux" />
-<p>
-</p>
+	<form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" name="kernels">
+		<input type="hidden" name="kernel" value="linux" />
 
-<div align="center">
-<input name="continue" value="Continue" type="submit" />
+		<div align="center">
+			<input name="continue" value="Continue" type="submit" />
+		</div>
+	</form>
 </div>
-</form>
 </div>
+
 <?php
 }
 ?>

@@ -25,23 +25,22 @@ if (isset($_POST['kernel']) &&
 	}
 ?>
 
-<a name="initramfs"></a>
-<h2>Additional RAM filesystem</h2>
+<div class="box">
+<h3>[Step 3/5] Additional RAM filesystem</h3>
 
 <form enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" name="packages">
 
-<?php
+	<?php
 	echo shell_exec("./helper --list-pkgs ".$_POST["tmp_dir"]);
 	post_hidden();
 ?>
-<p>
-</p>
 
-<div align="center">
-<input name="continue" value="Continue" type="submit" />
+		<div align="center">
+			<input name="continue" value="Continue" type="submit" />
+		</div>
+
+	</form>
 </div>
-
-</form>
 
 <?php
 }

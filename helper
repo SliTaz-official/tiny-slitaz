@@ -10,162 +10,193 @@ init()
 	done | lzma e pkgs/files.list.lzma -si
 }
 
+
+
+
 list_pkgs()
 {
 	TMPDIR=$2
 	shift 2
 	cat <<EOT
+<div class="large">
 <table>
-<tr>
-<th></th>
-<th>Package</th>
-<th>Version</th>
-<th>Description</th>
-<th>Disk</th>
-<th>Memory</th>
-<th></th>
-</tr>
+	<thead>
+		<tr>
+			<th> </th>
+			<th>Package</th>
+			<th>Version</th>
+			<th>Description</th>
+			<th>Disk</th>
+			<th>Memory</th>
+			<th> </th>
+		</tr>
+	</thead>
+	<tbody>
 EOT
-	for i in $TMPDIR/pkgs/*/receipt pkgs/*/receipt ; do
+	for i in $TMPDIR/pkgs/*/receipt pkgs/*/receipt; do
 		[ -s $i ] || continue
 		case "$i" in
-		pkgs/kernel-*/receipt) continue;;
-		pkgs/module-*/receipt) continue;;
+			pkgs/kernel-*/receipt) continue;;
+			pkgs/module-*/receipt) continue;;
 		esac
-		AUTO_SELECTION=""
-		UNPACKED_SIZE="-"
-		PACKED_SIZE="-"
-		checked=""
+		AUTO_SELECTION=''
+		UNPACKED_SIZE='-'
+		PACKED_SIZE='-'
+		checked=''; hidden_var=''
 		. $i
 		case " $@ " in
-		*\ $PACKAGE\ *)	checked='checked="checked"';;
-		*) [ -n "$2" ] && checked="";;
+			*\ $PACKAGE\ *)	checked='checked="checked"';;
+			*) [ -n "$2" ] && checked="";;
 		esac
 		grep -qs "^$PACKAGE " $TMPDIR/uploadconf &&
 			checked='checked="checked"'
 		case "$AUTO_SELECTION" in
-		never)
-			checked='disabled' ;;
-		always)
-			checked='checked="checked" disabled'
-			cat <<EOT
-<input type="hidden" name="selected[]" value="$PACKAGE" />
-EOT
+			never)
+				continue;;
+			always)
+				checked='checked="checked" disabled'
+				hidden_var="<input type=\"hidden\" name=\"selected[]\" value=\"$PACKAGE\" />";;
 		esac
 		cat <<EOT
-<tr>
-<td><input type="checkbox" name="selected[]" value="$PACKAGE" $checked /></td>
-<td><a href="?dl=$PACKAGE-$VERSION&amp;tmp=$TMPDIR">$PACKAGE</a></td>
-<td>$VERSION</td>
-<td>$SHORT_DESC</td>
-<td>$PACKED_SIZE</td>
-<td>$UNPACKED_SIZE</td>
-<td>$(grep -qs ^config_form $i && echo '&raquo;')</td>
-</tr>
+		<tr>
+			<td>$hidden_var
+				<input type="checkbox" name="selected[]" value="$PACKAGE" $checked /></td>
+			<td><a href="?dl=$PACKAGE-$VERSION&amp;tmp=$TMPDIR">$PACKAGE</a></td>
+			<td>$VERSION</td>
+			<td>$SHORT_DESC</td>
+			<td>$PACKED_SIZE</td>
+			<td>$UNPACKED_SIZE</td>
+			<td>$(grep -qs ^config_form $i && echo '&raquo;')</td>
+		</tr>
 EOT
 	done
 	cat <<EOT
+	</tbody>
 </table>
-<p>
-</p>
+</div>
 EOT
 	exit
 }
+
+
+
 
 list_kernels()
 {
 	TMPDIR=$2
 	shift 2
 	cat <<EOT
+<div class="large">
 <table>
-<tr>
-<th></th>
-<th>Kernel</th>
-<th>Version</th>
-<th>Description</th>
-<!-- th>Size</th -->
-</tr>
+	<thead>
+		<tr>
+			<th> </th>
+			<th>Kernel</th>
+			<th>Version</th>
+			<th>Description</th>
+			<!-- th>Size</th -->
+		</tr>
+	</thead>
+	<tbody>
 EOT
 	checked='checked="checked"'
 	for i in $TMPDIR/pkgs/*/receipt pkgs/*/receipt ; do
 		[ -s $i ] || continue
 		case "$i" in
-		pkgs/kernel-*/receipt);;
-		*) continue;;
+			pkgs/kernel-*/receipt);;
+			*) continue;;
 		esac
 		UNPACKED_SIZE="-"
 		. $i
 		case " $@ " in
-		*\ $PACKAGE\ *)	checked='checked="checked"' ;;
-		*) [ -n "$2" ] && checked="";;
+			*\ $PACKAGE\ *)	checked='checked="checked"' ;;
+			*) [ -n "$2" ] && checked="";;
 		esac
 		cat <<EOT
-<tr>
-<td><input type="radio" name="kernel" value="$PACKAGE" $checked/></td>
-<td>${PACKAGE#kernel-}</td>
-<td>$VERSION</td>
-<td>$SHORT_DESC</td>
-<!-- td>$UNPACKED_SIZE</td -->
-</tr>
+		<tr>
+			<td><input type="radio" name="kernel" value="$PACKAGE" $checked/></td>
+			<td>${PACKAGE#kernel-}</td>
+			<td>$VERSION</td>
+			<td>$SHORT_DESC</td>
+			<!-- td>$UNPACKED_SIZE</td -->
+		</tr>
 EOT
 		checked=""
 	done
 	cat <<EOT
+	</tbody>
 </table>
+</div>
 EOT
 	exit
 }
+
+
+
 
 list_modules()
 {
 	TMPDIR=$2
 	shift 2
 	cat <<EOT
+<input type="hidden" name="selected[]" value="" />
+<div class="large">
 <table>
-<tr>
-<th></th>
-<th>Module</th>
-<th>Version</th>
-<th>Description</th>
-<th>Size</th>
-<th></th>
-</tr>
+	<thead>
+		<tr>
+			<th> </th>
+			<th>Module</th>
+			<th>Version</th>
+			<th>Description</th>
+			<th>Size</th>
+			<th> </th>
+		</tr>
+	</thead>
+	<tbody>
 EOT
 	for i in $TMPDIR/pkgs/*/receipt pkgs/*/receipt ; do
 		[ -s $i ] || continue
 		case "$i" in
-		pkgs/module-*/receipt);;
-		*) continue;;
+			pkgs/module-*/receipt);;
+			*) continue;;
 		esac
-		UNPACKED_SIZE="-"
+		UNPACKED_SIZE='-'
 		. $i
-		checked=""
+		checked=''
 		case " $@ " in
-		*\ $PACKAGE\ *)	checked='checked="checked"' ;;
+			*\ $PACKAGE\ *)	checked='checked="checked"' ;;
 		esac
 		grep -qs "^$PACKAGE " $TMPDIR/uploadconf &&
 			checked='checked="checked"'
 		cat <<EOT
-<tr>
-<td><input type="checkbox" name="selected[]" value="$PACKAGE" $checked/></td>
-<td>${PACKAGE#module-}</td>
-<td>$VERSION</td>
-<td>$SHORT_DESC</td>
-<td>$UNPACKED_SIZE</td>
-<td>$(grep -qs ^config_form $i && echo '?')</td>
-</tr>
+		<tr>
+			<td><input type="checkbox" name="selected[]" value="$PACKAGE" $checked/></td>
+			<td>${PACKAGE#module-}</td>
+			<td>$VERSION</td>
+			<td>$SHORT_DESC</td>
+			<td>$UNPACKED_SIZE</td>
+			<td>$(grep -qs ^config_form $i && echo '&raquo;')</td>
+		</tr>
 EOT
 	done
 	cat <<EOT
+	</tbody>
 </table>
+</div>
 EOT
 	exit
 }
+
+
+
 
 get_receipt()
 {
 	grep -l "PACKAGE=\"$1\"" $2/pkgs/*/receipt pkgs/*/receipt | head -1
 }
+
+
+
 
 get_package()
 {
@@ -180,6 +211,9 @@ get_package()
 	echo -n $pkg
 }
 
+
+
+
 get_note()
 {
 	pkg=$(get_receipt $1 $2)
@@ -188,6 +222,9 @@ get_note()
 	. $pkg
 	config_note
 }
+
+
+
 
 get_form()
 {
@@ -209,6 +246,9 @@ if (/^$PACKAGE /) found=1
 	exit
 }
 
+
+
+
 do_pre_install()
 {
 	pkg=$(get_receipt $1 $2)
@@ -220,6 +260,9 @@ do_pre_install()
 	unlzma -c $(dirname $pkg)/fs.cpio.lzma | ( cd $2 ; cpio -idmu )
 	exit 
 }
+
+
+
 
 do_post_install()
 {
@@ -236,6 +279,9 @@ do_post_install()
 	rm -f $2/vars
 	exit 
 }
+
+
+
 
 scan_depends()
 {
@@ -254,6 +300,9 @@ scan_depends()
 	done
 }
 
+
+
+
 get_depends()
 {
 	TMPDIR=$2
@@ -263,6 +312,9 @@ get_depends()
 	echo -n $OUTPUT
 	exit
 }
+
+
+
 
 pkgs_extract()
 {
@@ -292,6 +344,9 @@ pkgs_extract()
 	exit
 }
 
+
+
+
 lzma_set_size()
 {
 	n=$(unlzma -c $1 | wc -c)
@@ -301,20 +356,26 @@ lzma_set_size()
 	done | xargs echo -en | dd of=$1 conv=notrunc bs=1 seek=5 2> /dev/null
 }
 
+
+
+
 case "$1" in
---list-modules) list_modules $@ ;;
---list-kernels) list_kernels $@ ;;
---list-pkgs) list_pkgs $@ ;;
---get-form) get_form $2 $3 ;;
---get-note) get_note $2 $3 ;;
---pre-install) do_pre_install $2 $3 ;;
---post-install) do_post_install $2 $3 ;;
---depends) get_depends $@ ;;
---pkgs-extract) pkgs_extract $2 $3 ;;
---remove) rm -rf $2; exit ;;
---get-pkg) get_package $2 $3 ;;
---init) init ;;
+	--list-modules)	list_modules $@ ;;
+	--list-kernels)	list_kernels $@ ;;
+	--list-pkgs)	list_pkgs $@ ;;
+	--get-form)		get_form $2 $3 ;;
+	--get-note)		get_note $2 $3 ;;
+	--pre-install)	do_pre_install $2 $3 ;;
+	--post-install)	do_post_install $2 $3 ;;
+	--depends)		get_depends $@ ;;
+	--pkgs-extract)	pkgs_extract $2 $3 ;;
+	--remove)		rm -rf $2; exit ;;
+	--get-pkg)		get_package $2 $3 ;;
+	--init)			init ;;
 esac
+
+
+
 
 if [ "x$1" == "x--mkrootfs" ]; then
 	tmp=$2
@@ -356,6 +417,8 @@ EOT
                 -boot-info-table $tmp/iso > /dev/null 2>&1
         [ -x /usr/bin/isohybrid ] &&
         /usr/bin/isohybrid $tmp/slitaz.iso 2> /dev/null
+        [ -x /usr/bin/iso2exe ] &&
+        /usr/bin/iso2exe $tmp/slitaz.iso 2> /dev/null
 fi
 if [ "x$1" == "x--mkexe" ]; then
 	tmp=$2

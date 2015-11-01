@@ -32,24 +32,25 @@ if (!empty($_POST['toconfigure'])) {
 		}
 ?>
 
-<a name="configuration"></a>
-<h2><?php echo $pkg; ?> configuration</h2>
+<div class="box">
+<h3>[Step 4/5] <?php echo $pkg; ?> configuration</h3>
 
 <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
 
-<input name="configuring" value="<?php echo $pkg; ?>" type="hidden" />
-<?php
+	<input name="configuring" value="<?php echo $pkg; ?>" type="hidden" />
+	<div class="large">
+		<?php
 		echo $output;
 		post_hidden();
 ?>
-<p>
-</p>
+	</div>
 
-<div align="center">
-<input name="continue" value="Continue" type="submit" />
-</div>
+	<div align="center">
+		<input name="continue" value="Continue" type="submit" />
+	</div>
 
 </form>
+</div>
 
 <?php
 		echo shell_exec("./helper --get-note $pkg ".$_POST['tmp_dir']); 
