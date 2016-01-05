@@ -115,7 +115,7 @@ href="http://hg.slitaz.org/wok-tiny/file/tip/base-tiny/stuff">filesystem tree</a
 
 <footer>
 	<div>
-		Copyright © <?php date ('Y') ?>		<a href="http://www.slitaz.org/">SliTaz</a>
+		Copyright © <?php echo date ('Y') ?>		<a href="http://www.slitaz.org/">SliTaz</a>
 	</div>
 	<div>
 		Network:
