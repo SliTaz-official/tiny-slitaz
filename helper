@@ -198,6 +198,19 @@ get_receipt()
 
 
 
+get_suggested()
+{
+	local pkg
+	pkg=pkgs/$1/receipt
+	[ -s $pkg ] || pkg=$2/pkgs/$1/receipt
+	[ -s $pkg ] || pkg=$(get_receipt $@)
+	. $pkg
+	echo -n $SUGGESTED
+}
+
+
+
+
 get_package()
 {
 	local pkg
@@ -371,6 +384,7 @@ case "$1" in
 	--pkgs-extract)	pkgs_extract $2 $3 ;;
 	--remove)		rm -rf $2; exit ;;
 	--get-pkg)		get_package $2 $3 ;;
+	--get-suggested)	get_suggested $2 $3 ;;
 	--init)			init ;;
 esac
 
@@ -399,6 +413,8 @@ if [ "x$1" == "x--mkiso" ]; then
 	cat $tmp/post_install.log | gzip -9 > $tmp/iso/data/log.gz
 	cp $tmp/config_files $tmp/iso/data/files.cnf
 	cp $tmp/fs/etc/packages.conf $tmp/iso/data/packages.cnf
+	[ -s wok/busybox/receipt ] && tar czf $tmp/iso/data/wok.tgz wok/*
+	[ -s www/index.php ] && tar czf $tmp/iso/data/www.tgz www/*
 	cp $tmp/fs/boot/bzImage $tmp/iso/boot/bzImage
 	cp $tmp/rootfs.gz $tmp/iso/boot/rootfs
 	cp /boot/isolinux/isolinux.bin $tmp/iso/boot/isolinux
@@ -424,13 +440,13 @@ if [ "x$1" == "x--mkexe" ]; then
 	tmp=$2
 	cd $tmp
 	cp fs/boot/bzImage slitaz.exe
-	sh fs/boot/bundle slitaz.exe rootfs.gz exe
+	sh fs/boot/bundle slitaz.exe rootfs.gz
 fi
 if [ "x$1" == "x--mkimg" ]; then
 	tmp=$2
 	cd $tmp
 	cp fs/boot/bzImage slitaz.img
-	sh fs/boot/bundle slitaz.img rootfs.gz floppy
+	sh fs/boot/bundle slitaz.img rootfs.gz
 	dd of=slitaz.img bs=18k seek=80 count=0 conv=notrunc 2> /dev/null
 fi
 if [ "x$1" == "x--mkcfg" ]; then

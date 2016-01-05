@@ -16,8 +16,8 @@ $static = "http://mirror1.slitaz.org/static/";
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="author" content="SliTaz Contributors">
 	<meta name="publisher" content="www.slitaz.org">
-	<link rel="shortcut icon" href="/static/favicon.ico">
-	<link rel="stylesheet" href="/static/slitaz.min.css">
+	<link rel="shortcut icon" href="favicon.ico">
+	<link rel="stylesheet" href="slitaz.min.css">
 	<link rel="stylesheet" href="tiny.css">
 	<style>pre, tt, code { font-size: 0.9rem; }</style>
 </head>
@@ -103,7 +103,7 @@ href="http://hg.slitaz.org/wok-tiny/file/tip/base-tiny/stuff">filesystem tree</a
 		}
 		catch (any) {
 			var element = document.createElement("script");
-			element.src = "/static/qrcode.min.js";
+			element.src = "qrcode.min.js";
 			element.type = "text/javascript";
 			element.onload = function() {
 				obj.src = QRCode.generatePNG(str, {ecclevel: 'H'});
@@ -134,7 +134,7 @@ href="http://hg.slitaz.org/wok-tiny/file/tip/base-tiny/stuff">filesystem tree</a
 		<a href="http://en.wikipedia.org/wiki/SliTaz">Wikipedia</a> ·
 		<a href="http://flattr.com/profile/slitaz">Flattr</a>
 	</div>
-	<img src="/static/qr.png" alt="#" onmouseover="this.title = location.href"
+	<img src="qr.png" alt="#" onmouseover="this.title = location.href"
 	onclick="this.src = QRCodePNG(location.href, this)"/>
 </footer>
 
