@@ -447,6 +447,24 @@ if [ "x$1" == "x--mkimg" ]; then
 	cd $tmp
 	cp fs/boot/bzImage slitaz.img
 	sh fs/boot/bundle slitaz.img rootfs.gz
+	if [ -s fs/boot/ipxe ] && [ -s fs/boot/memtest ] &&
+	   [ $(du -c fs/boot/ipxe fs/boot/memtest slitaz.img | \
+			awk 'END { print $1 }') -lt 1440 ]; then
+		sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
+			"Tiny SliTaz" fs/boot/ipxe "SliTaz web boot" \
+			fs/boot/memtest "Check memory"
+		mv -f out slitaz.img
+	elif [ -s fs/boot/ipxe ] && [ $(du -c fs/boot/ipxe slitaz.img | \
+			awk 'END { print $1 }') -lt 1440 ]; then
+		sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
+			"Tiny SliTaz" fs/boot/ipxe "SliTaz web boot"
+		mv -f out slitaz.img
+	elif [ -s fs/boot/memtest ] && [ $(du -c fs/boot/memtest slitaz.img | \
+			awk 'END { print $1 }') -lt 1440 ]; then
+		sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
+			"Tiny SliTaz" fs/boot/memtest "Check memory"
+		mv -f out slitaz.img
+	fi
 	[ $(stat -c %s slitaz.img) -lt 1474560 ] &&
 	dd of=slitaz.img bs=18k seek=80 count=0 2> /dev/null
 fi
