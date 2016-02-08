@@ -148,7 +148,8 @@ list_modules()
 			<th>Module</th>
 			<th>Version</th>
 			<th>Description</th>
-			<th>Size</th>
+			<th>Disk</th>
+			<th>Memory</th>
 			<th> </th>
 		</tr>
 	</thead>
@@ -174,6 +175,7 @@ EOT
 			<td>${PACKAGE#module-}</td>
 			<td>$VERSION</td>
 			<td>$SHORT_DESC</td>
+			<td>$PACKED_SIZE</td>
 			<td>$UNPACKED_SIZE</td>
 			<td>$(grep -qs ^config_form $i && echo '&raquo;')</td>
 		</tr>
