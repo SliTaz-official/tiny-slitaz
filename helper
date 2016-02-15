@@ -289,7 +289,8 @@ do_post_install()
 		[ -s $2/vars ] && . $2/vars
 		echo "=== $pkg: $(date) ===" >> $2/post_install.log 2>&1
 		post_install $2/fs >> $2/post_install.log 2>&1
-		sed -e 's/^export/ /' -e 's/^/  /' < $2/vars >> $2/fs/etc/packages.conf
+		sed -e 's/^export/ /' -e 's/^/  /' -e '/^   suggested=/d' \
+			< $2/vars >> $2/fs/etc/packages.conf
 	fi
 	rm -f $2/vars
 	exit 

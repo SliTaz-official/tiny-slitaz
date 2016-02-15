@@ -10,6 +10,7 @@ if (isset($_POST['configuring'])) {
 	$fp = fopen($_POST['tmp_dir']."vars","w");
 	foreach ($_POST as $key => $val) {
 		if (in_array($key, $usedvars)) continue;
+		if (is_array($val)) $val = implode(",",$val);
 		fwrite($fp,"export ".$key."='".$val."'\n");
 	}
 	fclose($fp);
