@@ -19,7 +19,8 @@ if (isset($_POST['configuring'])) {
 
 if (isset($_POST['suggested'])) {
 	foreach ($_POST['suggested'] as $pkg) {
-		$_POST['toconfigure'] .= " ".$pkg;
+		if (!strstr(" ".$_POST['toconfigure']." ", " ".$pkg." "))
+			$_POST['toconfigure'] .= " ".$pkg;
 	}
 	unset($_POST['suggested']);
 }
