@@ -36,7 +36,29 @@ if (!empty($_POST['toconfigure'])) {
 		$_POST['toconfigure'] = implode(" ", $pkgs);
 		$suggested = shell_exec("./helper --get-suggested $pkg ".
 					$_POST['tmp_dir']); 
-		if ($output == "" && $suggested == "") {
+		if ($suggested != "") {
+			$sugghead = <<<EOT
+	<hr />
+	<p>
+	You may want to install the following package(s) too:
+	</p>
+	<ol>
+EOT;
+			foreach (explode(" ", $suggested) as $sug)
+				if (!strstr(" ".$_POST['packages']." ",
+				    " ".$sug." ")) {
+					$output .= $sugghead ;
+					$sugghead = "";
+					$output .= <<<EOT
+		<li>
+		<input type="checkbox" name="suggested[]" value="$sug" checked="checked" />$sug
+		</li>
+EOT;
+			}
+			if ($sugghead == "")
+				$output .= "	</ol>\n";
+		}
+		if ($output == "") {
 			shell_exec("sudo ./helper --post-install $pkg ".
 				   $_POST['tmp_dir']); 
 			continue;
@@ -53,23 +75,7 @@ if (!empty($_POST['toconfigure'])) {
 		<?php
 		echo $output;
 		post_hidden();
-		if ($suggested != "") {
-			$output = "suggested";
-?>
-	<hr />
-	<p>
-	You may want to install the following package(s) too:
-	</p>
-	<ol>
-<?php			foreach (explode(" ", $suggested) as $pkg)
-				if (!strstr(" ".$_POST['packages']." ",
-				    " ".$pkg." ")) { ?>
-		<li>
-		<input type="checkbox" name="suggested[]" value="<?php echo $pkg; ?>" checked="checked" /> <?php echo $pkg; ?>
-		</li>
-<?php			} ?>
-	</ol>
-<?php		} ?>
+		?>
 	</div>
 
 	<div align="center">
