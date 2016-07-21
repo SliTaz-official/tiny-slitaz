@@ -22,10 +22,10 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 	<tr><td class="first">Bootable images:</td><td>
 
 <?php
-      $title="Neither Windows nor emm386 support. Need a real mode DOS";
+      $title="Neither Windows nor emm386 supported. Needs a real mode DOS";
       if ((filesize($_POST['tmp_dir']."rootfs.gz") + 
 	   filesize($_POST['tmp_dir']."fs/boot/bzImage")) <= 18*80*1024) {
-	   $title .= ". Tip: can be splitted in several boot floppies too";
+	   $title .= ". Tip: can be split in several boot floppies too";
 	    ?>
 		<input name="download" value="Floppy image" type="submit"
 		       title="You can use dd or rawrite to create the 1.44M floppy disk" />
@@ -33,7 +33,7 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 		<input name="download" value="DOS/EXE" type="submit"
 		       title="<?php echo $title; ?>" />
 <?php if (file_exists("/boot/isolinux/isolinux.bin")) {
-	  $title="Can be burn on a CD-ROM or written on a USB Key / memory card";
+	  $title="Can be burnt on to a CD-ROM or written on to a USB Key / memory card";
 	  if (file_exists("/usr/bin/iso2exe"))
 	  	$title .= ", or renamed with the .exe suffix and run with DOS or Windows";
 	   ?>
@@ -87,8 +87,8 @@ RAM.<br>
 The kernel can be <a href="http://elinux.org/Linux_Tiny">tuned/patched</a> or
 you can use an earlier version.</p>
 
-<p>You can test Tiny SliTaz without pre-historic hardware using qemu (need the
-<tt>ne</tt> module):</p>
+<p>You can test Tiny SliTaz without pre-historic hardware using qemu (needs the
+<tt>net</tt> module):</p>
 
 <pre>
 qemu -cpu 486 -m 4 -net nic,model=ne2k_isa -net tap -fda slitaz.img

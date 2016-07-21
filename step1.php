@@ -64,7 +64,7 @@ if (!isset($_POST['kernel'])) {
 
 <p>The file <tt>/etc/packages.conf</tt> in the initramfs holds all information
 to rebuild your Tiny SliTaz system. You should upload your
-<tt>/etc/packages.conf</tt> first if you want to upgrade your system only.</p>
+<tt>/etc/packages.conf</tt> first if you only want to upgrade your system.</p>
 
 <form method="post" enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
 	Packages configuration:
@@ -104,7 +104,7 @@ the package names are found to be matching. You can find some examples in the
 
 <p id="kernel">You can upload a custom Kernel or use an official one. Your
 Kernel should have an embedded initramfs with busybox like <a
-href="dist/rootfs.cpio" title="See CONFIG_INITRAMFS_SOURCE">this one</a>.</p>
+href="dist/rootfs.cpio" title="See CONFIG_INITRAMFS_SOURCE">this</a>.</p>
 
 <div>
 	<form method="post" enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"]; ?>">

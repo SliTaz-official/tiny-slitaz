@@ -66,7 +66,7 @@ include "step5.php";
 <h3>Tiny SliTaz goals</h3>
 
 <p>Useful software, expansible, easy to configure, runs fully in RAM, simple,
-light and fast for minimum hardware resources: ie fits on one floppy disk (IDE
+light and fast for minimum hardware resources, i.e. fits on one floppy disk (IDE
 disk optional), runs on a 386SX processor and needs as little memory as possible
 (currently 4MB with a 2.6.14 Kernel).
 <a href="http://doc.slitaz.org/en:guides:pxe#why-use-pxe-the-vnc-example">Example</a>
@@ -83,7 +83,7 @@ kept. The package manager is run using this website.</p>
 
 <p>Tiny SliTaz uses a Linux Kernel with an <a href="dist/rootfs.cpio"
 title="See CONFIG_INITRAMFS_SOURCE">embedded filesystem</a>. An extra initramfs
-can also be loaded with the configuration and extra packages.</p>
+can also be loaded with the configuration files and extra packages.</p>
 
 <p>The initramfs is based on <a href="http://uclibc.org/"
 title="Instead of glibc">uClibc</a> and busybox with its <a
