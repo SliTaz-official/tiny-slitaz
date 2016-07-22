@@ -88,7 +88,7 @@ The kernel can be <a href="http://elinux.org/Linux_Tiny">tuned/patched</a> or
 you can use an earlier version.</p>
 
 <p>You can test Tiny SliTaz without pre-historic hardware using qemu (needs the
-<tt>net</tt> module):</p>
+<tt>ne.ko</tt> module):</p>
 
 <pre>
 qemu -cpu 486 -m 4 -net nic,model=ne2k_isa -net tap -fda slitaz.img
