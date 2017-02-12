@@ -7,10 +7,16 @@ $usedvars = array( "kernel", "modules", "packages", "toconfigure",
 function set_tmp_dir()
 {
 	$dir = opendir("/tmp");
+	$i = 0;
 	while (($name = readdir($dir)) !== false) {
 		if (preg_match('/^tiny_webgen/',$name) == 0) continue;
+		if ($i++ > 100) {
+			echo "<h1>Too may users, retry later</h1>";
+			exit;
+		}
 		if (filemtime("/tmp/$name") > strtotime("-1 hour")) continue;
 		shell_exec("sudo ./helper --remove /tmp/$name"); 
+		$i--;
 	}
 	closedir($dir);
 	if (isset($_POST["tmp_dir"])) return;
@@ -120,7 +126,7 @@ href="dist/rootfs.cpio" title="See CONFIG_INITRAMFS_SOURCE">this</a>.</p>
 <div>
 	<form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" name="kernels">
 		<input type="hidden" name="kernel" value="linux" />
-
+		<?php post_hidden(); ?>
 		<div align="center">
 			<input name="continue" value="Continue" type="submit" />
 		</div>
