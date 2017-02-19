@@ -11,7 +11,7 @@ function set_tmp_dir()
 	while (($name = readdir($dir)) !== false) {
 		if (preg_match('/^tiny_webgen/',$name) == 0) continue;
 		if ($i++ > 100) {
-			echo "<h1>Too may users, retry later</h1>";
+			echo "<h1>Too many users, retry later</h1>";
 			exit;
 		}
 		if (filemtime("/tmp/$name") > strtotime("-1 hour")) continue;
