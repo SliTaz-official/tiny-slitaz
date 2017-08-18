@@ -18,6 +18,9 @@ function download($file,$name='')
 if (isset($_POST['download'])) {
 	switch (substr($_POST['download'],0,6)) {
 	case "Kernel" : download("fs/boot/bzImage","kernel");
+	case "Memtes" : download("fs/boot/memtest");
+	case "GPXE (" : download("fs/boot/gpxe");
+	case "IPXE (" : download("fs/boot/ipxe");
 	case "Rootfs" : download("rootfs.gz");
 	case "packag" : download("fs/etc/packages.conf");
 	case "Config" : shell_exec("sudo ./helper --mkcfg ".$_POST['tmp_dir']); 

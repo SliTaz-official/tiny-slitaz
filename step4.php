@@ -44,6 +44,8 @@ if (!empty($_POST['toconfigure'])) {
 	</p>
 	<ol>
 EOT;
+			$checked = "checked=\"checked\" ";
+			if (file_exists($_POST["tmp_dir"]."uploadconf")) $checked = "";
 			foreach (explode(" ", $suggested) as $sug)
 				if (!strstr(" ".$_POST['packages']." ",
 				    " ".$sug." ")) {
@@ -51,7 +53,7 @@ EOT;
 					$sugghead = "";
 					$output .= <<<EOT
 		<li>
-		<input type="checkbox" name="suggested[]" value="$sug" checked="checked" />$sug
+		<input type="checkbox" name="suggested[]" value="$sug" $checked/>$sug
 		</li>
 EOT;
 			}

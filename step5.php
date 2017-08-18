@@ -49,6 +49,18 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 					 ?>)" type="submit" />
 		<input name="download" value="Rootfs (<?php echo show_size("rootfs.gz");
 			 ?>)" title="For the initrd= parameter" type="submit" />
+<?php if (show_size("fs/boot/memtest") != "") { ?>
+		<input name="download" value="Memtest (<?php echo show_size("fs/boot/memtest");
+					 ?>)" type="submit" />
+<?php } ?>
+<?php if (show_size("fs/boot/gpxe") != "") { ?>
+		<input name="download" value="GPXE (<?php echo show_size("fs/boot/gpxe");
+					 ?>)" type="submit" />
+<?php } ?>
+<?php if (show_size("fs/boot/ipxe") != "") { ?>
+		<input name="download" value="IPXE (<?php echo show_size("fs/boot/ipxe");
+					 ?>)" type="submit" />
+<?php } ?>
 	</td></tr>
 
 
