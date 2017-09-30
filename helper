@@ -404,7 +404,6 @@ if [ "x$1" == "x--mkrootfs" ]; then
 	find -user bellard -exec chown root.root {} \;
 	find | grep -v ^./boot | cpio -o -H newc | gzip -9 > ../rootfs.gz
 	which advdef 2> /dev/null && advdef -z4 ../rootfs.gz
-  find .. -exec ls -ld {} \; > /tmp/X
 fi
 if [ "x$1" == "x--mkiso" ]; then
 	tmp=$2

@@ -10,13 +10,12 @@ function set_tmp_dir()
 	$i = 0;
 	while (($name = readdir($dir)) !== false) {
 		if (preg_match('/^tiny_webgen/',$name) == 0) continue;
-		if ($i++ > 100) {
+		if (filemtime("/tmp/$name") < strtotime("-1 hour"))
+			shell_exec("sudo ./helper --remove /tmp/$name"); 
+		else if ($i++ > 100) {
 			echo "<h1>Too many users, retry later</h1>";
 			exit;
 		}
-		if (filemtime("/tmp/$name") > strtotime("-1 hour")) continue;
-		shell_exec("sudo ./helper --remove /tmp/$name"); 
-		$i--;
 	}
 	closedir($dir);
 	if (isset($_POST["tmp_dir"])) return;
