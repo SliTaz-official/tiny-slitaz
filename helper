@@ -397,6 +397,7 @@ esac
 if [ "x$1" = "x--mkrootfs" ]; then
 	tmp=$2
 	cd $tmp/fs
+	[ -s boot/mkrootfs.pre_exec ] && sh boot/mkrootfs.pre_exec
 	if [ ! -d boot -a -s ../kernel ]; then # custom kernel
 		mkdir boot
 		cp ../kernel boot/bzImage
