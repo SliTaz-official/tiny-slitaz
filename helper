@@ -33,6 +33,8 @@ list_pkgs()
 	</thead>
 	<tbody>
 EOT
+	unlzma < $TMPDIR/pkgs/linux-[2-9]*/fs.cpio.lzma | \
+	( cd $TMPDIR/fs ; cpio -idmu boot/config-busybox )
 	for i in $TMPDIR/pkgs/*/receipt pkgs/*/receipt; do
 		[ -s $i ] || continue
 		case "$i" in
@@ -51,11 +53,14 @@ EOT
 		grep -qs "^$PACKAGE " $TMPDIR/uploadconf &&
 			checked='checked="checked"'
 		case "$AUTO_SELECTION" in
-			never)
-				continue;;
-			always)
-				checked='checked="checked" disabled'
-				hidden_var="<input type=\"hidden\" name=\"selected[]\" value=\"$PACKAGE\" />";;
+		never)
+			continue;;
+		always)
+			checked='checked="checked" disabled'
+			hidden_var="<input type=\"hidden\" name=\"selected[]\" value=\"$PACKAGE\" />";;
+		CONF*)
+			grep -qs "^$AUTO_SELECTION=y$" $TMPDIR/fs/boot/config-busybox ||
+			checked='disabled';;
 		esac
 		cat <<EOT
 		<tr>
@@ -272,7 +277,7 @@ do_pre_install()
 	. $pkg
 	grep -qs ^pre_install $pkg && pre_install $2/fs
 	[ -n "$CONFIG_FILES" ] && for i in $CONFIG_FILES; do echo $i >> $2/config_files; done
-	unlzma -c $(dirname $pkg)/fs.cpio.lzma | ( cd $2 ; cpio -idmu )
+	unlzma < $(dirname $pkg)/fs.cpio.lzma | ( cd $2 ; cpio -idmu )
 	exit 
 }
 
@@ -365,7 +370,7 @@ pkgs_extract()
 
 lzma_set_size()
 {
-	n=$(unlzma -c $1 | wc -c)
+	n=$(unlzma < $1 | wc -c)
 	for i in $(seq 1 8); do
 		printf '\\\\x%02X' $(($n & 255))
 		n=$(($n >> 8))
