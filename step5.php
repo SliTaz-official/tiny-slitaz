@@ -20,16 +20,22 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 
 <table>
 	<tr><td class="first">Bootable images:</td><td>
-
+		<div id="floppyset">
+		</div>
+		<select name="fdsize" id="fdsize" onchange="floppy_form()">
 <?php
       $title="Neither Windows nor emm386 supported. Needs a real mode DOS";
-      if ((filesize($_POST['tmp_dir']."rootfs.gz") + 
-	   filesize($_POST['tmp_dir']."fs/boot/bzImage")) <= 18*80*1024) {
-	   $title .= ". Tip: can be split in several boot floppies too";
-	    ?>
-		<input name="download" value="Floppy image" type="submit"
-		       title="You can use dd or rawrite to create the 1.44M floppy disk" />
-<?php } ?>
+      if (!file_exists($_POST['tmp_dir']."out")) 
+	   shell_exec("sudo ./helper --mkimg ".$_POST['tmp_dir']);
+      if (!isset($_POST['fdsize'])) $_POST['fdsize']="1474560";
+      foreach(array("737280" => "720K", "1228800" => "1.2M",
+		    "1474560" => "1.44M", "1720320" => "1.72M",
+		    "1966080" => "1.92M", "2949120" => "2.88M") as $sz => $nm) {
+	  echo "		<option value=\"$sz\"";
+	  if ($sz == $_POST['fdsize']) echo " selected";
+	  echo ">$nm</option>\n";
+      } ?>
+		</select>
 		<input name="download" value="DOS/EXE" type="submit"
 		       title="<?php echo $title; ?>" />
 <?php if (file_exists("/boot/isolinux/isolinux.bin")) {
@@ -91,6 +97,28 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 </table>
 </form>
 </div>
+
+<script>
+function floppy_form()
+{
+	var fds=document.getElementById("fdsize");
+	for (i=1;;i++) {
+		element=document.getElementById("Floppy"+i);
+		if (element) document.getElementById("floppyset").removeChild(element);
+		else break;
+	}
+	for (i=<?php echo filesize($_POST['tmp_dir']."out"); ?>, j=1; i > 0; j++, i -= fds.value) {
+		var element = document.createElement("input");
+		element.name = "download";
+		element.type = "submit";
+		element.value = element.id = "Floppy"+j;
+		element.title = "You can use dd or rawrite to create the floppy disk";
+		document.getElementById("floppyset").appendChild(element);
+	}
+}
+
+floppy_form();
+</script>
 
 <h2>Going further</h2>
 

@@ -45,7 +45,10 @@ EOT
 		UNPACKED_SIZE='-'
 		PACKED_SIZE='-'
 		checked=''; hidden_var=''
+		GROUP=
+		CATEGORY=
 		. $i
+		[ "$GROUP" ] || GROUP="$CATEGORY"
 		case " $@ " in
 			*\ $PACKAGE\ *)	checked='checked="checked"';;
 			*) [ -n "$2" ] && checked="";;
@@ -63,6 +66,7 @@ EOT
 			checked='disabled';;
 		esac
 		cat <<EOT
+		<!-- $GROUP -->
 		<tr>
 			<td>$hidden_var
 				<input type="checkbox" name="selected[]" value="$PACKAGE" $checked /></td>
@@ -166,8 +170,11 @@ EOT
 			pkgs/module-*/receipt);;
 			*) continue;;
 		esac
+		GROUP=
+		CATEGORY=
 		UNPACKED_SIZE='-'
 		. $i
+		[ "$GROUP" ] || GROUP="$CATEGORY"
 		checked=''
 		case " $@ " in
 			*\ $PACKAGE\ *)	checked='checked="checked"' ;;
@@ -175,9 +182,10 @@ EOT
 		grep -qs "^$PACKAGE " $TMPDIR/uploadconf &&
 			checked='checked="checked"'
 		cat <<EOT
+		<!-- $GROUP -->
 		<tr>
 			<td><input type="checkbox" name="selected[]" value="$PACKAGE" $checked/></td>
-			<td>${PACKAGE#module-}</td>
+			<td><a href="?dl=$PACKAGE-$VERSION&amp;tmp=$TMPDIR">${PACKAGE#module-}</a></td>
 			<td>$VERSION</td>
 			<td>$SHORT_DESC</td>
 			<td>$PACKED_SIZE</td>
@@ -378,6 +386,12 @@ lzma_set_size()
 }
 
 
+compressto()
+{
+	[ "$(which zopfli 2> /dev/null)" ] &&
+	zopfli --i100 -c /dev/stdin > $1 || gzip -9 > $1
+	[ "$(which advdef 2> /dev/null)" ] && advdef -z4 $1 > /dev/null
+}
 
 
 case "$1" in
@@ -408,17 +422,16 @@ if [ "x$1" = "x--mkrootfs" ]; then
 		cp ../kernel boot/bzImage
 	fi
 	find -user bellard -exec chown root.root {} \;
-	find | grep -v ^./boot | cpio -o -H newc | gzip -9 > ../rootfs.gz
-	which advdef 2> /dev/null && advdef -z4 ../rootfs.gz
+	find | grep -v ^./boot | cpio -o -H newc | compressto ../rootfs.gz
 fi
 if [ "x$1" = "x--mkiso" ]; then
 	tmp=$2
 	mkdir -p $tmp/iso/boot/isolinux $tmp/iso/data
-	cat $tmp/fs/boot/System.map | gzip -9 > $tmp/iso/data/sysmap.gz
-	cat $tmp/fs/boot/config | gzip -9 > $tmp/iso/data/linconf.gz
-	cat $tmp/fs/boot/config-busybox | gzip -9 > $tmp/iso/data/bbconf.gz
+	cat $tmp/fs/boot/System.map | compressto $tmp/iso/data/sysmap.gz
+	cat $tmp/fs/boot/config | compressto $tmp/iso/data/linconf.gz
+	cat $tmp/fs/boot/config-busybox | compressto $tmp/iso/data/bbconf.gz
 	cp $tmp/fs/boot/bundle $tmp/iso/data/bundle.sh
-	cat $tmp/post_install.log | gzip -9 > $tmp/iso/data/log.gz
+	cat $tmp/post_install.log | compressto $tmp/iso/data/log.gz
 	cp $tmp/config_files $tmp/iso/data/files.cnf
 	cp $tmp/fs/etc/packages.conf $tmp/iso/data/packages.cnf
 	[ -s wok/busybox/receipt ] && tar czf $tmp/iso/data/wok.tgz wok/*
@@ -427,9 +440,28 @@ if [ "x$1" = "x--mkiso" ]; then
 	cp $tmp/rootfs.gz $tmp/iso/boot/rootfs
 	cp /boot/isolinux/isolinux.bin $tmp/iso/boot/isolinux
 	cat > $tmp/iso/boot/isolinux/isolinux.cfg <<EOT
-label slitaz
+label slitaz slitqw
 	kernel /boot/bzImage
 	append initrd=/boot/rootfs rw root=/dev/null vga=normal
+
+EOT
+	while read bin keys; do
+		[ -s $tmp/fs/boot/$bin ] &&
+		cp $tmp/fs/boot/$bin $tmp/iso/boot/ &&
+		KEY="$KEY ${keys%% *}" &&
+		cat >> $tmp/iso/boot/isolinux/isolinux.cfg <<EOT
+label $keys
+	kernel /boot/$bin
+
+EOT
+	done <<EOT
+memtest		test memtest mem
+ipxe		web zeb ipxe pxe
+EOT
+	[ -s $tmp/fs/boot/ipxe ] && cp $tmp/fs/boot/ipxe $tmp/iso/boot/ &&
+	[ "$KEY" ] && echo "say You can boot: slitaz (default)$KEY" >> \
+		$tmp/iso/boot/isolinux/isolinux.cfg
+	cat >> $tmp/iso/boot/isolinux/isolinux.cfg <<EOT
 default slitaz
 implicit 0	
 prompt 1	
@@ -453,31 +485,35 @@ fi
 if [ "x$1" = "x--mkimg" ]; then
 	tmp=$2
 	cd $tmp
-	cp fs/boot/bzImage slitaz.img
-	sh fs/boot/bundle slitaz.img rootfs.gz
-	if [ -s fs/boot/ipxe ] && [ -s fs/boot/memtest ]; then
-		sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
-			"Tiny SliTaz" fs/boot/ipxe "SliTaz web boot" \
-			fs/boot/memtest "Check memory"
-	elif [ -s fs/boot/ipxe ]; then
-		sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
-			"Tiny SliTaz" fs/boot/ipxe "SliTaz web boot"
-	elif [ -s fs/boot/memtest ]; then
-		sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
-			"Tiny SliTaz" fs/boot/memtest "Check memory"
-		mv -f out slitaz.img
-	else
-		cp slitaz.img out
+	if [ ! -s out ]; then
+		cp fs/boot/bzImage slitaz.img
+		sh fs/boot/bundle slitaz.img rootfs.gz
+		if [ -s fs/boot/ipxe ] && [ -s fs/boot/memtest ]; then
+			sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
+				"Tiny SliTaz" fs/boot/ipxe "SliTaz web boot" \
+				fs/boot/memtest "Check memory"
+		elif [ -s fs/boot/ipxe ]; then
+			sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
+				"Tiny SliTaz" fs/boot/ipxe "SliTaz web boot"
+		elif [ -s fs/boot/memtest ]; then
+			sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
+				"Tiny SliTaz" fs/boot/memtest "Check memory"
+		else
+			mv slitaz.img out
+		fi
 	fi
-	[ $(stat -c %s out) -le 1474560 ] && mv -f out slitaz.img || rm -f out
-	[ $(stat -c %s slitaz.img) -lt 1474560 ] &&
-	dd of=slitaz.img bs=18k seek=80 count=0 2> /dev/null
+	rm -f xa* 2> /dev/null
+	split -b ${3:-1474560} out
+	A="-abcdefghijklmnopqrstuvwxyz"
+	mv xa${A:${4:-1}:1} floppy$4.img || mv xaa floppy1.img
+	[ $(stat -c %s floppy${4:-1}.img) -lt ${3:-1474560} ] &&
+	dd of=floppy${4:-1}.img bs=1 seek=${3:-1474560} count=0 2> /dev/null
 fi
 if [ "x$1" = "x--mkcfg" ]; then
 	tmp=$2
 	cd $tmp/fs
 	for i in $(sed 's#^/##' < ../config_files); do find $i; done | \
-		sort | uniq | cpio -o -H newc | gzip -9 > ../config_files.cpio.gz
+		sort | uniq | cpio -o -H newc | compressto ../config_files.cpio.gz
 fi
 if [ "x$1" = "x--chkdist" ]; then
 	if [ pkgs/busybox-*/fs.cpio.lzma -nt dist/rootfs.cpio ]; then

@@ -25,8 +25,10 @@ if (isset($_POST['download'])) {
 	case "packag" : download("fs/etc/packages.conf");
 	case "Config" : shell_exec("sudo ./helper --mkcfg ".$_POST['tmp_dir']); 
 			download("config_files.cpio.gz");
-	case "Floppy" : shell_exec("./helper --mkimg ".$_POST['tmp_dir']); 
-			download("slitaz.img");
+	case "Floppy" : $n=substr($_POST['download'],6,1);
+			shell_exec("./helper --mkimg ".$_POST['tmp_dir']." ".
+			$_POST['fdsize']." ".$n); 
+			download("floppy".$n.".img");
 	case "DOS/EX" : shell_exec("./helper --mkexe ".$_POST['tmp_dir']); 
 			download("slitaz.exe");
 	case "ISO im" : shell_exec("sudo ./helper --mkiso ".$_POST['tmp_dir']); 
