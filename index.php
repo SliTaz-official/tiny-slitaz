@@ -8,7 +8,7 @@ $static = "http://mirror1.slitaz.org/static/";
 	<meta charset="UTF-8">
 	<title>Tiny SliTaz - Builder</title>
 	<meta name="description" content="Tiny SliTaz Linux">
-	<meta name="keywords" lang="en" content="tiny slitaz, uclibx, tcc">
+	<meta name="keywords" lang="en" content="tiny slitaz, uclibc, tcc">
 	<meta name="robots" content="index, follow, all">
 	<meta name="revisit-after" content="7 days">
 	<meta name="expires" content="never">

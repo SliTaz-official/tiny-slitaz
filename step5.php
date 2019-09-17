@@ -29,7 +29,7 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 	   shell_exec("sudo ./helper --mkimg ".$_POST['tmp_dir']);
       if (!isset($_POST['fdsize'])) $_POST['fdsize']="1474560";
       foreach(array("737280" => "720K", "1228800" => "1.2M",
-		    "1474560" => "1.44M", "1720320" => "1.72M",
+		    "1474560" => "1.44M", "1720320" => "1.68M",
 		    "1966080" => "1.92M", "2949120" => "2.88M") as $sz => $nm) {
 	  echo "		<option value=\"$sz\"";
 	  if ($sz == $_POST['fdsize']) echo " selected";
