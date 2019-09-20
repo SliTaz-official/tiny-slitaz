@@ -213,14 +213,67 @@ get_receipt()
 
 
 
-get_suggested()
+list_suggested()
 {
 	local pkg
 	pkg=pkgs/$1/receipt
-	[ -s $pkg ] || pkg=$2/pkgs/$1/receipt
+	TMPDIR=$2
+	[ -s $pkg ] || pkg=$TMPDIR/pkgs/$1/receipt
 	[ -s $pkg ] || pkg=$(get_receipt $@)
+	SUGGESTED=
 	. $pkg
-	echo -n $SUGGESTED
+	SUGG=
+	for i in $SUGGESTED; do
+		case " $@ " in
+		*\ $i\ *);;
+		*) SUGG="$SUGG $i";;
+		esac
+	done
+	if [ "$SUGG" ]; then
+		cat <<EOT
+	<hr />
+	<p>
+	You may want to install the following package(s) too:
+	</p>
+<div class="large">
+<table>
+	<thead>
+		<tr>
+			<th> </th>
+			<th>Package</th>
+			<th>Version</th>
+			<th>Description</th>
+			<th>Disk</th>
+			<th>Memory</th>
+			<th> </th>
+		</tr>
+	</thead>
+	<tbody>
+EOT
+		checked='checked="checked" '
+		[ $TMPDIR/uploadconf ] && checked=
+		for i in $SUGG; do
+			i=$(grep -l "PACKAGE=\"$i\"" pkgs/*/receipt)
+			. $i
+			cat <<EOT
+		<!-- $GROUP -->
+		<tr>
+			<td><input type="checkbox" name="suggested[]" value="$PACKAGE" $checked /></td>
+			<td><a href="?dl=$PACKAGE-$VERSION&amp;tmp=$TMPDIR">$PACKAGE</a></td>
+			<td>$VERSION</td>
+			<td>$SHORT_DESC</td>
+			<td>$PACKED_SIZE</td>
+			<td>$UNPACKED_SIZE</td>
+			<td>$(grep -qs ^config_form $i && echo '&raquo;')</td>
+		</tr>
+EOT
+		done
+		cat <<EOT
+	</tbody>
+</table>
+</div>
+EOT
+	fi
 }
 
 
@@ -374,6 +427,15 @@ pkgs_extract()
 }
 
 
+boot_files()
+{
+	[ -s $1/fs/boot/bootmenu ] && while read bin button text; do
+		cat <<EOT
+		<input name="download" value="${button%%,*} ($(du -h \
+$1/fs/boot/$bin | awk '{ printf "%s",$1 }'))" type="submit" />
+EOT
+	done < $1/fs/boot/bootmenu
+}
 
 
 lzma_set_size()
@@ -395,19 +457,20 @@ compressto()
 
 
 case "$1" in
-	--list-modules)	list_modules $@ ;;
-	--list-kernels)	list_kernels $@ ;;
-	--list-pkgs)	list_pkgs $@ ;;
+	--list-modules)		list_modules $@ ;;
+	--list-kernels)		list_kernels $@ ;;
+	--list-pkgs)		list_pkgs $@ ;;
 	--get-form)		get_form $2 $3 ;;
 	--get-note)		get_note $2 $3 ;;
-	--pre-install)	do_pre_install $2 $3 ;;
-	--post-install)	do_post_install $2 $3 ;;
+	--pre-install)		do_pre_install $2 $3 ;;
+	--post-install)		do_post_install $2 $3 ;;
 	--depends)		get_depends $@ ;;
-	--pkgs-extract)	pkgs_extract $2 $3 ;;
+	--pkgs-extract)		pkgs_extract $2 $3 ;;
 	--remove)		rm -rf $2; exit ;;
 	--get-pkg)		get_package $2 $3 ;;
-	--get-suggested)	get_suggested $2 $3 ;;
+	--list-suggested)	list_suggested $2 $3 $@ ;;
 	--init)			init ;;
+	--boot-files)		boot_files $2 ;;
 esac
 
 
@@ -445,20 +508,16 @@ label slitaz slitqw
 	append initrd=/boot/rootfs rw root=/dev/null vga=normal
 
 EOT
-	while read bin keys; do
-		[ -s $tmp/fs/boot/$bin ] &&
-		cp $tmp/fs/boot/$bin $tmp/iso/boot/ &&
-		KEY="$KEY ${keys%% *}" &&
+	[ -s $tmp/fs/boot/bootmenu ] && while read bin keys text; do
+		keys=${keys#*,}
+		KEY="$KEY ${keys%%,*}"
+		cp $tmp/fs/boot/$bin $tmp/iso/boot/$bin
 		cat >> $tmp/iso/boot/isolinux/isolinux.cfg <<EOT
-label $keys
+label ${keys//,/ } $bin
 	kernel /boot/$bin
 
 EOT
-	done <<EOT
-memtest		test memtest mem
-ipxe		web zeb ipxe pxe
-EOT
-	[ -s $tmp/fs/boot/ipxe ] && cp $tmp/fs/boot/ipxe $tmp/iso/boot/ &&
+	done < $tmp/fs/boot/bootmenu
 	[ "$KEY" ] && echo "say You can boot: slitaz (default)$KEY" >> \
 		$tmp/iso/boot/isolinux/isolinux.cfg
 	cat >> $tmp/iso/boot/isolinux/isolinux.cfg <<EOT
@@ -488,19 +547,14 @@ if [ "x$1" = "x--mkimg" ]; then
 	if [ ! -s out ]; then
 		cp fs/boot/bzImage slitaz.img
 		sh fs/boot/bundle slitaz.img rootfs.gz
-		if [ -s fs/boot/ipxe ] && [ -s fs/boot/memtest ]; then
-			sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
-				"Tiny SliTaz" fs/boot/ipxe "SliTaz web boot" \
-				fs/boot/memtest "Check memory"
-		elif [ -s fs/boot/ipxe ]; then
-			sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
-				"Tiny SliTaz" fs/boot/ipxe "SliTaz web boot"
-		elif [ -s fs/boot/memtest ]; then
-			sh fs/boot/bundle out "   SliTaz boot menu" slitaz.img \
-				"Tiny SliTaz" fs/boot/memtest "Check memory"
-		else
-			mv slitaz.img out
-		fi
+		if [ -s fs/boot/bootmenu ]; then
+			echo -n "sh fs/boot/bundle out '   SliTaz boot menu'"
+			echo -n " slitaz.img 'Tiny SliTaz'"
+			while read bin button text; do
+				echo -n " fs/boot/$bin '$text'"
+			done < fs/boot/bootmenu
+		fi | sh
+		[ -s out ] || mv slitaz.img out
 	fi
 	rm -f xa* 2> /dev/null
 	split -b ${3:-1474560} out

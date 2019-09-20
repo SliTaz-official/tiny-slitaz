@@ -21,7 +21,6 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 <table>
 	<tr><td class="first">Bootable images:</td><td>
 		<div id="floppyset">
-		</div>
 		<select name="fdsize" id="fdsize" onchange="floppy_form()">
 <?php
       $title="Neither Windows nor emm386 supported. Needs a real mode DOS";
@@ -36,6 +35,7 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 	  echo ">$nm</option>\n";
       } ?>
 		</select>
+		</div>
 		<input name="download" value="DOS/EXE" type="submit"
 		       title="<?php echo $title; ?>" />
 <?php if (file_exists("/boot/isolinux/isolinux.bin")) {
@@ -55,18 +55,7 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 					 ?>)" type="submit" />
 		<input name="download" value="Rootfs (<?php echo show_size("rootfs.gz");
 			 ?>)" title="For the initrd= parameter" type="submit" />
-<?php if (show_size("fs/boot/memtest") != "") { ?>
-		<input name="download" value="Memtest (<?php echo show_size("fs/boot/memtest");
-					 ?>)" type="submit" />
-<?php } ?>
-<?php if (show_size("fs/boot/gpxe") != "") { ?>
-		<input name="download" value="GPXE (<?php echo show_size("fs/boot/gpxe");
-					 ?>)" type="submit" />
-<?php } ?>
-<?php if (show_size("fs/boot/ipxe") != "") { ?>
-		<input name="download" value="IPXE (<?php echo show_size("fs/boot/ipxe");
-					 ?>)" type="submit" />
-<?php } ?>
+<?php echo shell_exec("sudo ./helper --boot-files ".$_POST['tmp_dir']); ?>
 	</td></tr>
 
 
@@ -101,6 +90,7 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 <script>
 function floppy_form()
 {
+	var element;
 	var fds=document.getElementById("fdsize");
 	for (i=1;;i++) {
 		element=document.getElementById("Floppy"+i);
@@ -108,13 +98,14 @@ function floppy_form()
 		else break;
 	}
 	for (i=<?php echo filesize($_POST['tmp_dir']."out"); ?>, j=1; i > 0; j++, i -= fds.value) {
-		var element = document.createElement("input");
+		element = document.createElement("input");
 		element.name = "download";
 		element.type = "submit";
 		element.value = element.id = "Floppy"+j;
 		element.title = "You can use dd or rawrite to create the floppy disk";
 		document.getElementById("floppyset").appendChild(element);
 	}
+	if (j == 2) element.value = "Floppy image";
 }
 
 floppy_form();

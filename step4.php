@@ -34,32 +34,8 @@ if (!empty($_POST['toconfigure'])) {
 				$_POST['tmp_dir']); 
 		unset($pkgs[$key]);
 		$_POST['toconfigure'] = implode(" ", $pkgs);
-		$suggested = shell_exec("./helper --get-suggested $pkg ".
-					$_POST['tmp_dir']); 
-		if ($suggested != "") {
-			$sugghead = <<<EOT
-	<hr />
-	<p>
-	You may want to install the following package(s) too:
-	</p>
-	<ol>
-EOT;
-			$checked = "checked=\"checked\" ";
-			if (file_exists($_POST["tmp_dir"]."uploadconf")) $checked = "";
-			foreach (explode(" ", $suggested) as $sug)
-				if (!strstr(" ".$_POST['packages']." ",
-				    " ".$sug." ")) {
-					$output .= $sugghead ;
-					$sugghead = "";
-					$output .= <<<EOT
-		<li>
-		<input type="checkbox" name="suggested[]" value="$sug" $checked/>$sug
-		</li>
-EOT;
-			}
-			if ($sugghead == "")
-				$output .= "	</ol>\n";
-		}
+		$output .= shell_exec("./helper --list-suggested $pkg ".
+			$_POST['tmp_dir']." ".$_POST['packages']); 
 		if ($output == "") {
 			shell_exec("sudo ./helper --post-install $pkg ".
 				   $_POST['tmp_dir']); 

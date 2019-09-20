@@ -2,6 +2,8 @@
 
 function download($file,$name='')
 {
+	$files = explode(" ",$file);
+	$file = $files[0];
 	if ($name == '')
 		$name = basename($file);
 	if (isset($_POST['tmp_dir']))
@@ -18,14 +20,12 @@ function download($file,$name='')
 if (isset($_POST['download'])) {
 	switch (substr($_POST['download'],0,6)) {
 	case "Kernel" : download("fs/boot/bzImage","kernel");
-	case "Memtes" : download("fs/boot/memtest");
-	case "GPXE (" : download("fs/boot/gpxe");
-	case "IPXE (" : download("fs/boot/ipxe");
 	case "Rootfs" : download("rootfs.gz");
 	case "packag" : download("fs/etc/packages.conf");
 	case "Config" : shell_exec("sudo ./helper --mkcfg ".$_POST['tmp_dir']); 
 			download("config_files.cpio.gz");
 	case "Floppy" : $n=substr($_POST['download'],6,1);
+			if ($n == " ") $n="1";
 			shell_exec("./helper --mkimg ".$_POST['tmp_dir']." ".
 			$_POST['fdsize']." ".$n); 
 			download("floppy".$n.".img");
@@ -37,6 +37,7 @@ if (isset($_POST['download'])) {
 	case "linux." : download("fs/boot/config","linux.config");
 	case "busybo" : download("fs/boot/config-busybox","busybox.config");
 	case "post_i" : download("post_install.log");
+	default       : download("fs/boot/".strtolower($_POST['download']));
 	}
 }
 if (isset($_GET['dl'])) {
