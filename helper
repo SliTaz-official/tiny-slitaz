@@ -235,6 +235,7 @@ list_suggested()
 	<p>
 	You may want to install the following package(s) too:
 	</p>
+	<input type="hidden" name="EXTRA_SUGGESTED" value="$SUGG" />
 <div class="large">
 <table>
 	<thead>
@@ -432,7 +433,7 @@ boot_files()
 	[ -s $1/fs/boot/bootmenu ] && while read bin button text; do
 		cat <<EOT
 		<input name="download" value="${button%%,*} ($(du -h \
-$1/fs/boot/$bin | awk '{ printf "%s",$1 }'))" type="submit" />
+$1/fs/boot/$bin | awk '{ printf "%s",$1 }'))" type="submit" title="$text" />
 EOT
 	done < $1/fs/boot/bootmenu
 }
@@ -551,7 +552,7 @@ if [ "x$1" = "x--mkimg" ]; then
 			echo -n "sh fs/boot/bundle out '   SliTaz boot menu'"
 			echo -n " slitaz.img 'Tiny SliTaz'"
 			while read bin button text; do
-				echo -n " fs/boot/$bin '$text'"
+				echo -n " fs/boot/$bin '${text% (*}'"
 			done < fs/boot/bootmenu
 		fi | sh
 		[ -s out ] || mv slitaz.img out

@@ -21,7 +21,8 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 <table>
 	<tr><td class="first">Bootable images:</td><td>
 		<div id="floppyset">
-		<select name="fdsize" id="fdsize" onchange="floppy_form()">
+		<select name="fdsize" id="fdsize" onchange="floppy_form()"
+			title="Select the size of the floppies">
 <?php
       $title="Neither Windows nor emm386 supported. Needs a real mode DOS";
       if (!file_exists($_POST['tmp_dir']."out")) 
@@ -52,9 +53,10 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
 	<tr><td class="first">Files for bootloaders:</td><td>
 
 		<input name="download" value="Kernel (<?php echo show_size("fs/boot/bzImage");
-					 ?>)" type="submit" />
+			 ?>)" title="A bzImage with a basic embbeded initramfs.
+Can boot from floppy or DOS in real mode." type="submit" />
 		<input name="download" value="Rootfs (<?php echo show_size("rootfs.gz");
-			 ?>)" title="For the initrd= parameter" type="submit" />
+			 ?>)" title="Extra initramfs for the initrd= parameter" type="submit" />
 <?php echo shell_exec("sudo ./helper --boot-files ".$_POST['tmp_dir']); ?>
 	</td></tr>
 
