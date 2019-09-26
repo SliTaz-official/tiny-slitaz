@@ -2,7 +2,7 @@
 
 shell_exec("sudo ./helper --chkdist"); 
 $usedvars = array( "kernel", "modules", "packages", "toconfigure",
-	"continue", "configuring", "tmp_dir" );
+	"continue", "configuring", "already_suggested", "tmp_dir" );
 
 function set_tmp_dir()
 {
@@ -49,6 +49,10 @@ function upload($var, $file = "")
 			move_uploaded_file($tmp_name, $_POST["tmp_dir"].$file);
 		}
 	}
+}
+
+if (isset($_POST['EXTRA_SUGGESTED'])) {
+	$_POST['already_suggested'] .= " ".$_POST['EXTRA_SUGGESTED'];
 }
 
 if (isset($_POST['mykernel']) && !isset($_POST['packages'])) {

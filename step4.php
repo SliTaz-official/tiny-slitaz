@@ -35,7 +35,8 @@ if (!empty($_POST['toconfigure'])) {
 		unset($pkgs[$key]);
 		$_POST['toconfigure'] = implode(" ", $pkgs);
 		$output .= shell_exec("./helper --list-suggested $pkg ".
-			$_POST['tmp_dir']." ".$_POST['packages']); 
+			$_POST['tmp_dir']." ".$_POST['packages'].
+			$_POST['already_suggested']); 
 		if ($output == "") {
 			shell_exec("sudo ./helper --post-install $pkg ".
 				   $_POST['tmp_dir']); 
