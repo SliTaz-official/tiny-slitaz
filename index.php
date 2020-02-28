@@ -81,14 +81,12 @@ kept. The package manager is run using this website.</p>
 
 <h3>How is it built?</h3>
 
-<p>Tiny SliTaz uses a Linux Kernel with an <a href="dist/rootfs.cpio"
-title="See CONFIG_INITRAMFS_SOURCE">embedded filesystem</a>. An extra initramfs
-can also be loaded with the configuration files and extra packages.</p>
-
 <p>The initramfs is based on <a href="http://uclibc.org/"
 title="Instead of glibc">uClibc</a> and busybox with its <a
 href="dist/busybox.config.txt">config</a> files and this <a
 href="http://hg.slitaz.org/wok-tiny/file/tip/base-tiny/stuff">filesystem tree</a>.
+The selected packages, modules and configuration files are stored in this
+initramfs.
 </p>
 
 
