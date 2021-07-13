@@ -1,4 +1,4 @@
-<?php
+<?php	// needs 'www ALL=NOPASSWD: /path/to/helper' in /etc/sudoers
 include "download.php";
 $static = "http://mirror1.slitaz.org/static/";
 ?>

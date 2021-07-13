@@ -351,12 +351,13 @@ do_post_install()
 	pkg=$(get_receipt $1 $2)
 	[ -n "$pkg" ] || exit
 	. $pkg
+	[ -d $2/fs/etc ] || mkdir -p $2/fs/etc
 	echo "$1 $VERSION $(md5sum $(dirname $pkg)/fs.cpio.lzma | awk '{ print $1 }')" >> $2/fs/etc/packages.conf
 	if grep -qs ^post_install $pkg; then
 		[ -s $2/vars ] && . $2/vars
 		echo "=== $pkg: $(date) ===" >> $2/post_install.log 2>&1
 		post_install $2/fs >> $2/post_install.log 2>&1
-		sed -e 's/^export/ /' -e 's/^/  /' -e '/^   suggested=/d' \
+		sed -e 's/^export/ /' -e 's/^/  /' -e '/^   suggested=/d' -e '/EXTRA_SUGGESTED=/d' \
 			< $2/vars >> $2/fs/etc/packages.conf
 	fi
 	rm -f $2/vars

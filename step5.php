@@ -28,13 +28,26 @@ if (isset($_POST['toconfigure']) && $_POST['toconfigure'] == ""
       if (!file_exists($_POST['tmp_dir']."out")) 
 	   shell_exec("sudo ./helper --mkimg ".$_POST['tmp_dir']);
       if (!isset($_POST['fdsize'])) $_POST['fdsize']="1474560";
-      foreach(array("737280" => "720K", "1228800" => "1.2M",
-		    "1474560" => "1.44M", "1720320" => "1.68M",
-		    "1966080" => "1.92M", "2949120" => "2.88M") as $sz => $nm) {
+      $use_optgroup=0;
+      foreach(array("360K 5¼-inch" => "", "368640" => "360K", "409600" => "400K",
+		    "720K 3½-inch" => "", "737280" => "720K", "819200" => "800K",
+      		    "1.2M 5¼-inch" => "", "1228800" => "1.2M",
+      		    "1.44M 3½-inch" => "", "1474560" => "1.44M", "1720320" => "1.68M",
+		    "1966080" => "1.92M", 
+		    "2.88M 3½-inch" => "", "2949120" => "2.88M", "5898240" => "3.36M") as $sz => $nm) {
+	if ($nm == "") {
+	  if ($use_optgroup != 0) echo "		</optgroup>\n";
+	  echo "		<optgroup label=\"$sz\">\n";
+	  $use_optgroup=1;
+	}
+	else {
 	  echo "		<option value=\"$sz\"";
 	  if ($sz == $_POST['fdsize']) echo " selected";
 	  echo ">$nm</option>\n";
-      } ?>
+	}
+      }
+      if ($use_optgroup != 0) echo "		</optgroup>\n";
+      ?>
 		</select>
 		</div>
 		<input name="download" value="DOS/EXE" type="submit"
